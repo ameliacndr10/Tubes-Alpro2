@@ -13,7 +13,12 @@ type Sampah struct {
 
 var dataSampah []Sampah
 
+
 func main() {
+	if !login() {
+		return
+	}
+
 	var pilihan int
 
 	for {
@@ -53,6 +58,20 @@ func main() {
 	}
 }
 
+func login() bool {
+	const passwordBenar = "admin123"
+	var password string 
+	fmt.Println("=== Login Aplikasi Pengelolaan Sampah ===")
+	fmt.Print("Masukkan Password: ")
+	fmt.Scan(&password)
+
+	if password != passwordBenar {
+		fmt.Println("Password salah. AKses ditolak.")
+		return false
+	}
+	return true
+}
+
 func tambahData() {
 
 	for {
@@ -78,9 +97,14 @@ func tambahData() {
 func ubahData() {
 
 	for {
-		tampilkanData()
-		var index int
+		if len(dataSampah) == 0 {
+			fmt.Println("Belum ada data untuk diubah.")
+			return 
+		}
 
+		tampilkanData()
+
+		var index int
 		fmt.Print("Masukkan nomor data yang ingin diubah: ")
 		fmt.Scan(&index)
 
@@ -129,9 +153,15 @@ func hapusData() {
 	}
 }
 
-func cariData() {
 
+func cariData() {
+	
 	for {
+		if len(dataSampah) == 0 {
+			fmt.Println("Data masih kosong.")
+			return
+		}
+
 		var pilihan int
 		var jenis string
 		fmt.Println("Pilih metode pencarian:")
@@ -154,6 +184,7 @@ func cariData() {
 				fmt.Println("Data tidak ditemukan.")
 			}
 		}else if pilihan == 2 {
+			insertionSortByJenis()
 			index := binarySearch(jenis)
 			if index != -1 {
 				fmt.Printf("Data ditemukan di nomor %d: %s, Jumlah: %d, Metode: %s\n", index+1, dataSampah[index].Jenis, dataSampah[index].Jumlah, dataSampah[index].MetodeDaurUlang)
@@ -161,8 +192,7 @@ func cariData() {
 				fmt.Println("Data tidak ditemukan.")
 			}
 		}
-
-
+		
 		if konfirmasi() {
 			break
 		}
