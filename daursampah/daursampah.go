@@ -5,7 +5,22 @@ import (
 	"strings"
 )
 
+func login() bool {
+	const passwordBenar = "admin123"
+	var password string
+	fmt.Println("=== Login Aplikasi Pengelolaan Sampah ===")
+	fmt.Print("Masukkan Password: ")
+	fmt.Scan(&password)
+
+	if password != passwordBenar {
+		fmt.Println("Password salah. AKses ditolak.")
+		return false
+	}
+	return true
+}
+
 type Sampah struct {
+	ID              int
 	Jenis           string
 	Jumlah          int
 	MetodeDaurUlang string
@@ -13,10 +28,15 @@ type Sampah struct {
 
 var dataSampah []Sampah
 
-
 func main() {
 	if !login() {
 		return
+	}
+
+	dataSampah = []Sampah{
+		{ID: 1, Jenis: "Plastik", Jumlah: 10, MetodeDaurUlang: "Recycle(daurulang)"},
+		{ID: 2, Jenis: "Kertas", Jumlah: 5, MetodeDaurUlang: "Reduce(mengurangi)"},
+		{ID: 3, Jenis: "Logam", Jumlah: 8, MetodeDaurUlang: "Recycling(dilebur)"},
 	}
 
 	var pilihan int
@@ -51,32 +71,33 @@ func main() {
 			tampilkan()
 		case 8:
 			fmt.Println("Terima kasih telah menggunakan aplikasi ini.")
-			return
 		default:
 			fmt.Println("Pilihan tidak valid, coba lagi.")
 		}
 	}
 }
+func idSama(id int) bool {
 
-func login() bool {
-	const passwordBenar = "admin123"
-	var password string 
-	fmt.Println("=== Login Aplikasi Pengelolaan Sampah ===")
-	fmt.Print("Masukkan Password: ")
-	fmt.Scan(&password)
-
-	if password != passwordBenar {
-		fmt.Println("Password salah. AKses ditolak.")
-		return false
+	for _, s := range dataSampah {
+		if s.ID == id {
+			return true
+		}
 	}
-	return true
+	return false
 }
-
 func tambahData() {
 
 	for {
 		var jenis, metode string
-		var jumlah int
+		var id, jumlah int
+
+		fmt.Print("Masukkan ID sampah: ")
+		fmt.Scan(&id)
+
+		if idSama(id) {
+			fmt.Println("ID sudah ada, silahkan masukkan ID lain.")
+			continue
+		}
 
 		fmt.Print("Masukkan jenis sampah: ")
 		fmt.Scan(&jenis)
@@ -85,7 +106,11 @@ func tambahData() {
 		fmt.Print("Masukkan metode daur ulang: ")
 		fmt.Scan(&metode)
 
-		dataSampah = append(dataSampah, Sampah{Jenis: jenis, Jumlah: jumlah, MetodeDaurUlang: metode})
+		dataSampah = append(dataSampah, Sampah{
+			ID:              id,
+			Jenis:           jenis,
+			Jumlah:          jumlah,
+			MetodeDaurUlang: metode})
 		if konfirmasi() {
 			break
 		}
@@ -99,7 +124,7 @@ func ubahData() {
 	for {
 		if len(dataSampah) == 0 {
 			fmt.Println("Belum ada data untuk diubah.")
-			return 
+			return
 		}
 
 		tampilkanData()
@@ -133,19 +158,25 @@ func ubahData() {
 }
 
 func hapusData() {
-
 	for {
 		tampilkanData()
-		var index int
-		fmt.Print("Masukkan nomor data yang ingin dihapus: ")
-		fmt.Scan(&index)
+		var ID int
+		fmt.Print("Masukkan nomor ID yang ingin dihapus: ")
+		fmt.Scan(&ID)
 
-		if index > 0 && index <= len(dataSampah) {
-			dataSampah = append(dataSampah[:index-1], dataSampah[index:]...)
-			fmt.Println("Data berhasil dihapus.")
-		} else {
-			fmt.Println("Nomor tidak valid.")
+		var idx int
+		idx = -1
+		for i, s := range dataSampah {
+			if s.ID == ID {
+				idx = i
+				break
+			}
 		}
+		if idx == -1 {
+			fmt.Println("Nomor ID tidak ditemukan")
+		}
+		dataSampah = append(dataSampah[:idx], dataSampah[idx+1:]...)
+		fmt.Println("Data berhasil dihapus")
 
 		if konfirmasi() {
 			break
@@ -153,9 +184,8 @@ func hapusData() {
 	}
 }
 
-
 func cariData() {
-	
+
 	for {
 		if len(dataSampah) == 0 {
 			fmt.Println("Data masih kosong.")
@@ -163,36 +193,41 @@ func cariData() {
 		}
 
 		var pilihan int
-		var jenis string
+		var input string
+		var inputjumlah int
+
 		fmt.Println("Pilih metode pencarian:")
-		fmt.Println("1. Berdasarkan (Sequential search)")
-		fmt.Println("2. Berdasarkan (Binary search)")
+		fmt.Println("1. Berdasarkan jenis (Sequential search)")
+		fmt.Println("2. Berdasarkan jumlah (Binary search)")
 		fmt.Print("Pilihan: ")
 		fmt.Scan(&pilihan)
 
-	
-		fmt.Print("Masukkan jenis sampah yang dicari: ")
-		fmt.Scan(&jenis)
-
 		if pilihan == 1 {
-			index := sequentialSearch(jenis)
+			fmt.Print("Masukkan jenis sampah yang dicari: ")
+			fmt.Scan(&input)
+			index := sequentialSearch(input)
 			if index != -1 {
-				fmt.Printf("Data ditemukan di nomor %d: %s\n", index+1, dataSampah[index].Jenis)
+				fmt.Printf("Data ditemukan di ID %d: %s\n", dataSampah[index].ID, dataSampah[index].Jenis)
 				fmt.Printf("Jumlah: %d\n", dataSampah[index].Jumlah)
 				fmt.Printf("Metode: %s\n", dataSampah[index].MetodeDaurUlang)
 			} else {
 				fmt.Println("Data tidak ditemukan.")
 			}
-		}else if pilihan == 2 {
-			insertionSortByJenis()
-			index := binarySearch(jenis)
+		} else if pilihan == 2 {
+			fmt.Print("Masukkan jumlah sampah yang dicari: ")
+			fmt.Scan(&inputjumlah)
+
+			selectionSortByJumlah()
+			index := binarySearch(inputjumlah)
 			if index != -1 {
-				fmt.Printf("Data ditemukan di nomor %d: %s, Jumlah: %d, Metode: %s\n", index+1, dataSampah[index].Jenis, dataSampah[index].Jumlah, dataSampah[index].MetodeDaurUlang)
+				fmt.Printf("Data ditemukan di ID %d: %s\n", dataSampah[index].ID, dataSampah[index].Jenis)
+				fmt.Printf("Jumlah: %d\n", dataSampah[index].Jumlah)
+				fmt.Printf("Metode: %s\n", dataSampah[index].MetodeDaurUlang)
 			} else {
 				fmt.Println("Data tidak ditemukan.")
 			}
 		}
-		
+
 		if konfirmasi() {
 			break
 		}
@@ -208,26 +243,25 @@ func sequentialSearch(jenis string) int {
 	return -1
 }
 
-func binarySearch(jenis string) int {
+func binarySearch(jumlah int) int {
 	insertionSortByJenis()
-	
-		kiri := 0
-		kanan := len(dataSampah) - 1
-	
-		for kiri <= kanan {
-			tengah := kiri + (kiri - kanan) / 2
-	
-			if dataSampah[tengah].Jenis == jenis {
-				return tengah
-			} else if dataSampah[tengah].Jenis < jenis {
-				kiri = tengah + 1
-			} else {
-				kanan = tengah - 1
-			}
+
+	kiri := 0
+	kanan := len(dataSampah) - 1
+
+	for kiri <= kanan {
+		tengah := (kiri + kanan) / 2
+
+		if dataSampah[tengah].Jumlah == jumlah {
+			return tengah
+		} else if dataSampah[tengah].Jumlah < jumlah {
+			kiri = tengah + 1
+		} else {
+			kanan = tengah - 1
 		}
-		return -1
 	}
-	
+	return -1
+}
 
 func urutkanData() {
 	for {
@@ -308,8 +342,8 @@ func tampilkan() {
 			fmt.Println("Belum ada data sampah.")
 			return
 		}
-		for i, s := range dataSampah {
-			fmt.Printf("%d. Jenis: %s | Jumlah: %d | Metode Daur Ulang: %s\n", i+1, s.Jenis, s.Jumlah, s.MetodeDaurUlang)
+		for _, s := range dataSampah {
+			fmt.Printf("ID: %d. Jenis: %s | Jumlah: %d | Metode Daur Ulang: %s\n", s.ID, s.Jenis, s.Jumlah, s.MetodeDaurUlang)
 		}
 		if konfirmasi() {
 			break
@@ -323,8 +357,8 @@ func tampilkanData() {
 		fmt.Println("Belum ada data sampah.")
 		return
 	}
-	for i, s := range dataSampah {
-		fmt.Printf("%d. Jenis: %s | Jumlah: %d | Metode Daur Ulang: %s\n", i+1, s.Jenis, s.Jumlah, s.MetodeDaurUlang)
+	for _, s := range dataSampah {
+		fmt.Printf("ID: %d. Jenis: %s | Jumlah: %d | Metode Daur Ulang: %s\n", s.ID, s.Jenis, s.Jumlah, s.MetodeDaurUlang)
 	}
 
 }
