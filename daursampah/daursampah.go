@@ -71,6 +71,7 @@ func main() {
 			tampilkan()
 		case 8:
 			fmt.Println("Terima kasih telah menggunakan aplikasi ini.")
+			return
 		default:
 			fmt.Println("Pilihan tidak valid, coba lagi.")
 		}
@@ -244,7 +245,6 @@ func sequentialSearch(jenis string) int {
 }
 
 func binarySearch(jumlah int) int {
-	insertionSortByJenis()
 
 	kiri := 0
 	kanan := len(dataSampah) - 1
